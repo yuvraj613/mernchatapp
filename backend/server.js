@@ -6,10 +6,29 @@ const chatRoutes = require("./routes/chatRoutes");
 const messageRoutes = require("./routes/messageRoutes");
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 const path = require("path");
+const cors = require('cors'); // Add this line
 
 dotenv.config();
 connectDB();
 const app = express();
+
+// Configure CORS
+const allowedOrigins = [
+  'http://localhost:3000', // For local frontend development
+  'https://mernchatapp-ypgk.vercel.app' // Your Vercel frontend URL
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  }
+}));
 
 app.use(express.json()); // to accept json data
 
@@ -53,7 +72,10 @@ const server = app.listen(
 const io = require("socket.io")(server, {
   pingTimeout: 60000,
   cors: {
-    origin: "http://localhost:3000",
+    origin: [
+        "http://localhost:3000", // Keep for local dev
+        "https://mernchatapp-ypgk.vercel.app" // Your Vercel frontend URL
+    ],
     // credentials: true,
   },
 });
